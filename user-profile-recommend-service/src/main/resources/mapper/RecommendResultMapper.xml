@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gdut.profile.recommend.mapper.RecommendResultMapper">
+
+    <!-- 通用字段片段（对应 RecommendResult 实体） -->
+    <sql id="baseColumns">
+        id, user_id, scene, result_json,
+        expire_time, create_time, click_count
+    </sql>
+
+    <!-- 插入单条推荐结果 -->
+    <insert id="insertRecommendResultSingle" parameterType="com.gdut.profile.recommend.entity.RecommendResult">
+        INSERT INTO recommend_result (
+            id, user_id, scene, result_json,
+            expire_time, create_time, click_count
+        ) VALUES (
+                     #{id}, #{userId}, #{scene}, #{resultJson},
+                     #{expireTime}, #{createTime}, #{clickCount}
+                 )
+    </insert>
+
+    <!-- 批量插入推荐结果（优化批量执行效率） -->
+    <insert id="insertRecommendResultMulti" parameterType="java.util.List">
+        INSERT INTO recommend_result (
+        id, user_id, scene, result_json,
+        expire_time, create_time, click_count
+        ) VALUES
+        <foreach collection="results" item="item" separator=",">
+            (
+            #{item.id}, #{item.userId}, #{item.scene}, #{item.resultJson},
+            #{item.expireTime}, #{item.createTime}, #{item.clickCount}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除单条推荐结果 -->
+    <delete id="deleteRecommendResultSingle" parameterType="java.lang.String">
+        DELETE FROM recommend_result WHERE id = #{resultId}
+    </delete>
+
+    <!-- 批量删除推荐结果 -->
+    <delete id="deleteRecommendResultMulti" parameterType="java.util.List">
+        DELETE FROM recommend_result WHERE id IN
+        <foreach collection="resultIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 更新单条推荐结果（仅允许更新 click_count 和 expire_time） -->
+    <update id="updateRecommendResultSingle" parameterType="com.gdut.profile.recommend.entity.RecommendResult">
+        UPDATE recommend_result
+        <set>
+            <if test="clickCount != null">click_count = #{clickCount},</if>
+            <if test="expireTime != null">expire_time = #{expireTime}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新推荐结果（需开启 allowMultiQueries=true） -->
+    <update id="updateRecommendResultMulti" parameterType="java.util.List">
+        <foreach collection="results" item="item" separator=";">
+            UPDATE recommend_result
+            <set>
+                <if test="item.clickCount != null">click_count = #{item.clickCount},</if>
+                <if test="item.expireTime != null">expire_time = #{item.expireTime}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 查询单条推荐结果 -->
+    <select id="selectRecommendResultSingle" parameterType="java.lang.String" resultType="com.gdut.profile.recommend.entity.RecommendResult">
+        SELECT <include refid="baseColumns"/> FROM recommend_result WHERE id = #{resultId}
+    </select>
+
+    <!-- 批量查询推荐结果 -->
+    <select id="selectRecommendResultMulti" parameterType="java.util.List" resultType="com.gdut.profile.recommend.entity.RecommendResult">
+        SELECT <include refid="baseColumns"/> FROM recommend_result WHERE id IN
+        <foreach collection="resultIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

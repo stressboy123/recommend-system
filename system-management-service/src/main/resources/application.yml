@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: system-management-service # 与子模块ArtifactId一致
+  config:
+    import: nacos:system-management-service.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 134.175.123.61:8848
+      config:
+        server-addr: 134.175.123.61:8848
+        file-extension: yml
+        group: DEFAULT_GROUP # Nacos配置分组（默认即可）
+    sentinel:
+      transport:
+        dashboard: 134.175.123.61:8080
+      eager: true
+  datasource:
+    url: jdbc:mysql://134.175.123.61:3306/db_system?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: ljl20021018
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: 134.175.123.61
+    port: 6379
+    password:
+    database: 4 # 系统服务专用Redis数据库
+
+server:
+  port: 9003 # 独立端口
+  servlet:
+    context-path: /
+
+# MyBatis-Plus配置（适配新包名）
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.gdut.system.management.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.gdut.system.management.mapper: debug

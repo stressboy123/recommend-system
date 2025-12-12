@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 注意：namespace 必须对应 Mapper 接口的完整路径 -->
+<mapper namespace="com.gdut.behaviordata.mapper.ItemMapper">
+
+    <!-- 通用字段片段（对应 item 实体） -->
+    <sql id="baseColumns">
+        id, tags, category_path, item_type
+    </sql>
+
+    <!-- 批量插入 -->
+    <insert id="insertItemBatch" parameterType="java.util.List">
+        INSERT INTO item (
+            id, tags, category_path, item_type
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id}, #{item.tags}, #{item.categoryPath}, #{item.itemType}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectByItemId" parameterType="string" resultType="com.gdut.behaviordata.entity.Item">
+        SELECT
+        <include refid="baseColumns"/>
+        FROM item
+        WHERE id = #{itemId}
+    </select>
+
+    <select id="selectByTags" parameterType="list" resultType="com.gdut.behaviordata.entity.Item">
+        SELECT
+        <include refid="baseColumns"/>
+        FROM item
+        WHERE tags IN
+        <foreach item="tag" collection="tags" separator="," open="(" close=")">
+            #{tag}
+        </foreach>
+    </select>
+
+    <select id="selectByItemIds" parameterType="list" resultType="com.gdut.behaviordata.entity.Item">
+        SELECT
+        <include refid="baseColumns"/>
+        FROM item
+        WHERE id IN
+        <foreach item="itemId" collection="itemIds" separator="," open="(" close=")">
+            #{itemId}
+        </foreach>
+    </select>
+
+    <select id="selectAll" resultType="com.gdut.behaviordata.entity.Item">
+            SELECT
+            <include refid="baseColumns"/>
+            FROM item
+    </select>
+
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 注意：namespace 必须对应 Mapper 接口的完整路径 -->
+<mapper namespace="com.gdut.behaviordata.mapper.HotBehaviorMapper">
+
+    <!-- 通用字段片段（对应 HotBehavior 实体） -->
+    <sql id="baseColumns">
+        id, target_id, target_type, behavior_count,
+        browse_count, click_count, collect_count, update_time
+    </sql>
+
+    <!-- 插入单条热门行为 -->
+    <insert id="insertHotBehaviorDetailSingle" parameterType="com.gdut.behaviordata.entity.HotBehavior">
+        INSERT INTO hot_behavior (
+            id, target_id, target_type, behavior_count,
+            browse_count, click_count, collect_count, update_time
+        ) VALUES (
+                     #{id}, #{targetId}, #{targetType}, #{behaviorCount},
+                     #{browseCount}, #{clickCount}, #{collectCount}, #{updateTime}
+                 )
+    </insert>
+
+    <!-- 批量插入热门行为 -->
+    <insert id="insertHotBehaviorDetailMulti" parameterType="java.util.List">
+        INSERT INTO hot_behavior (
+        id, target_id, target_type, behavior_count,
+        browse_count, click_count, collect_count, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id}, #{item.targetId}, #{item.targetType}, #{item.behaviorCount},
+            #{item.browseCount}, #{item.clickCount}, #{item.collectCount}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除单条热门行为 -->
+    <delete id="deleteHotBehaviorDetailSingle" parameterType="java.lang.String">
+        DELETE FROM hot_behavior WHERE id = #{behaviorId}
+    </delete>
+
+    <!-- 批量删除热门行为 -->
+    <delete id="deleteHotBehaviorDetailMulti" parameterType="java.util.List">
+        DELETE FROM hot_behavior WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 更新单条热门行为（动态更新非空字段） -->
+    <update id="updateHotBehaviorDetailSingle" parameterType="com.gdut.behaviordata.entity.HotBehavior">
+        UPDATE hot_behavior
+        <set>
+            <if test="targetId != null">target_id = #{targetId},</if>
+            <if test="targetType != null">target_type = #{targetType},</if>
+            <if test="behaviorCount != null">behavior_count = #{behaviorCount},</if>
+            <if test="browseCount != null">browse_count = #{browseCount},</if>
+            <if test="clickCount != null">click_count = #{clickCount},</if>
+            <if test="collectCount != null">collect_count = #{collectCount},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新热门行为（需开启 allowMultiQueries=true） -->
+    <update id="updateHotBehaviorDetailMulti" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE hot_behavior
+            <set>
+                <if test="item.targetId != null">target_id = #{item.targetId},</if>
+                <if test="item.targetType != null">target_type = #{item.targetType},</if>
+                <if test="item.behaviorCount != null">behavior_count = #{item.behaviorCount},</if>
+                <if test="item.browseCount != null">browse_count = #{item.browseCount},</if>
+                <if test="item.clickCount != null">click_count = #{item.clickCount},</if>
+                <if test="item.collectCount != null">collect_count = #{item.collectCount},</if>
+                <if test="item.updateTime != null">update_time = #{item.updateTime}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 查询单条热门行为（修正返回类型为 HotBehavior） -->
+    <select id="selectHotBehaviorDetailSingle" parameterType="java.lang.String" resultType="com.gdut.behaviordata.entity.HotBehavior">
+        SELECT <include refid="baseColumns"/> FROM hot_behavior WHERE id = #{behaviorId}
+    </select>
+
+    <!-- 批量查询热门行为（修正返回类型为 HotBehavior） -->
+    <select id="selectHotBehaviorDetailMulti" parameterType="java.util.List" resultType="com.gdut.behaviordata.entity.HotBehavior">
+        SELECT <include refid="baseColumns"/> FROM hot_behavior WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

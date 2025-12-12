@@ -1,0 +1,8 @@
+package com.gdut.gateway.config;
+
+/**
+ * @author liujunliang
+ * @date 2025/12/2
+ */
+public class CorsConfig {
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gdut.behaviordata.mapper.BehaviorDetailMapper">
+
+    <!-- 通用字段 -->
+    <sql id="baseColumns">
+        id, user_id, behavior_type, target_id, target_type,
+        behavior_content, device_no, ip_addr, create_time, is_valid
+    </sql>
+
+    <!-- 插入单条行为 -->
+    <insert id="insertBehaviorDetailSingle" parameterType="com.gdut.behaviordata.entity.BehaviorDetail">
+        INSERT INTO behavior_detail (
+            id, user_id, behavior_type, target_id, target_type,
+            behavior_content, device_no, ip_addr, create_time, is_valid
+        ) VALUES (
+                     #{id}, #{userId}, #{behaviorType}, #{targetId}, #{targetType},
+                     #{behaviorContent}, #{deviceNo}, #{ipAddr}, #{createTime}, #{isValid}
+                 )
+    </insert>
+
+    <!-- 批量插入行为 -->
+    <insert id="insertBehaviorDetailMulti" parameterType="java.util.List">
+        INSERT INTO behavior_detail (
+        id, user_id, behavior_type, target_id, target_type,
+        behavior_content, device_no, ip_addr, create_time, is_valid
+        ) VALUES
+        <foreach collection="behaviors" item="item" separator=",">
+            (
+            #{item.id}, #{item.userId}, #{item.behaviorType}, #{item.targetId}, #{item.targetType},
+            #{item.behaviorContent}, #{item.deviceNo}, #{item.ipAddr}, #{item.createTime}, #{item.isValid}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除单条行为 -->
+    <delete id="deleteBehaviorDetailSingle" parameterType="java.lang.String">
+        DELETE FROM behavior_detail WHERE id = #{behaviorId}
+    </delete>
+
+    <!-- 批量删除行为 -->
+    <delete id="deleteBehaviorDetailMulti" parameterType="java.util.List">
+        DELETE FROM behavior_detail WHERE id IN
+        <foreach collection="behaviorIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 更新单条行为 -->
+    <update id="updateBehaviorDetailSingle" parameterType="com.gdut.behaviordata.entity.BehaviorDetail">
+        UPDATE behavior_detail
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="behaviorType != null">behavior_type = #{behaviorType},</if>
+            <if test="targetId != null">target_id = #{targetId},</if>
+            <if test="targetType != null">target_type = #{targetType},</if>
+            <if test="behaviorContent != null">behavior_content = #{behaviorContent},</if>
+            <if test="deviceNo != null">device_no = #{deviceNo},</if>
+            <if test="ipAddr != null">ip_addr = #{ipAddr},</if>
+            <if test="isValid != null">is_valid = #{isValid}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新行为（需开启allowMultiQueries=true） -->
+    <update id="updateBehaviorDetailMulti" parameterType="java.util.List">
+        <foreach collection="behaviors" item="item" separator=";">
+            UPDATE behavior_detail
+            <set>
+                <if test="item.userId != null">user_id = #{item.userId},</if>
+                <if test="item.behaviorType != null">behavior_type = #{item.behaviorType},</if>
+                <if test="item.targetId != null">target_id = #{item.targetId},</if>
+                <if test="item.targetType != null">target_type = #{item.targetType},</if>
+                <if test="item.behaviorContent != null">behavior_content = #{item.behaviorContent},</if>
+                <if test="item.deviceNo != null">device_no = #{item.deviceNo},</if>
+                <if test="item.ipAddr != null">ip_addr = #{item.ipAddr},</if>
+                <if test="item.isValid != null">is_valid = #{item.isValid}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 查询单条行为 -->
+    <select id="selectBehaviorDetailSingle" parameterType="java.lang.String" resultType="com.gdut.behaviordata.entity.BehaviorDetail">
+        SELECT <include refid="baseColumns"/> FROM behavior_detail WHERE id = #{behaviorId}
+    </select>
+
+    <!-- 批量查询行为 -->
+    <select id="selectBehaviorDetailMulti" parameterType="java.util.List" resultType="com.gdut.behaviordata.entity.BehaviorDetail">
+        SELECT <include refid="baseColumns"/> FROM behavior_detail WHERE id IN
+        <foreach collection="behaviorIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据userId查询行为信息列表 -->
+    <select id="selectBehaviorDetailByUserId" parameterType="java.lang.String" resultType="com.gdut.behaviordata.entity.BehaviorDetail">
+        SELECT <include refid="baseColumns"/>
+        FROM behavior_detail
+        WHERE user_id = #{userId} AND is_valid = 1 AND create_time >= (
+            SELECT DATE_SUB(MAX(create_time), INTERVAL 30 DAY)
+            FROM behavior_detail
+            WHERE user_id = #{userId} AND is_valid = 1
+        )
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据userId查询最新行为信息 -->
+    <select id="selectBehaviorDetailNewOneByUserId" parameterType="java.lang.String" resultType="com.gdut.behaviordata.entity.BehaviorDetail">
+        SELECT <include refid="baseColumns"/> FROM behavior_detail WHERE user_id = #{userId} AND is_valid = 1 ORDER BY create_time DESC LIMIT 1
+    </select>
+
+    <select id="selectTop10TargetIdByBehaviorCount" resultType="java.util.Map">
+        SELECT target_id, COUNT(*) AS behavior_count
+        FROM behavior_detail
+        WHERE is_valid = 1
+        GROUP BY target_id
+        ORDER BY behavior_count DESC
+        LIMIT 10
+    </select>
+
+    <select id="selectTop10TargetIdByBehaviorCountAndUserId" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT target_id, COUNT(*) AS behavior_count
+        FROM behavior_detail
+        WHERE user_id = #{userId} AND is_valid = 1
+        GROUP BY target_id
+        ORDER BY behavior_count DESC
+        LIMIT 10
+    </select>
+
+</mapper>

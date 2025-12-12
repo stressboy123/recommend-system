@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: gateway-service # 服务名（与子模块ArtifactId一致）
+  # Nacos配置（仅需服务发现，网关无需读取Nacos配置中心的业务配置）
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 134.175.123.61:8848
+    # Gateway路由规则（核心新增）
+#    gateway:
+#      routes:
+#        # 路由1：行为数据处理服务（路径前缀：/api/behavior/**）
+#        - id: behavior-data-service-route
+#          uri: lb://behavior-data-service # 转发到Nacos注册的服务名
+#          predicates:
+#            - Path=/api/behavior/** # 前端请求路径匹配规则
+#          filters:
+#            - StripPrefix=1 # 去掉路径前缀（/api/behavior/xxx → /xxx）
+#            - name: Sentinel   # Sentinel网关限流过滤器
+#              args:
+#                resourceName: behavior-data-service-route # 限流资源名
+#        # 路由2：用户画像与推荐服务（路径前缀：/api/recommend/**）
+#        - id: user-profile-recommend-service-route
+#          uri: lb://user-profile-recommend-service
+#          predicates:
+#            - Path=/api/recommend/**
+#          filters:
+#            - StripPrefix=1
+#            - name: Sentinel
+#              args:
+#                resourceName: user-profile-recommend-service-route
+#        # 路由3：系统管理服务（路径前缀：/api/system/**）
+#        - id: system-management-service-route
+#          uri: lb://system-management-service
+#          predicates:
+#            - Path=/api/system/**
+#          filters:
+#            - StripPrefix=1
+#            - name: Sentinel
+#              args:
+#                resourceName: system-management-service-route
+    # Sentinel配置（网关层限流）
+    sentinel:
+      transport:
+        dashboard: 134.175.123.61:8080 # Sentinel控制台端口（需单独启动Sentinel控制台）
+        port: 8719
+      filter:
+        enabled: false # 关闭普通Web过滤器，启用网关过滤器
+  # Redis配置（网关缓存Token、限流计数）
+  redis:
+    host: 134.175.123.61
+    port: 6379
+    password: # 无密码留空
+    database: 1 # 网关专用Redis数据库（避免与其他服务冲突）
+
+# 网关端口（建议用8080，前端统一访问该端口）
+server:
+  port: 9000
+  servlet:
+    context-path: / # 根路径
+
+# 日志配置
+logging:
+  level:
+    # 打印Sentinel网关过滤器注册过程
+    com.alibaba.csp.sentinel.adapter.gateway: debug

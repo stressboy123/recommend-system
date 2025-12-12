@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 对应 Mapper 接口全路径 -->
+<mapper namespace="com.gdut.profile.recommend.mapper.AiCallLogMapper">
+
+    <!-- 通用字段片段（对应 AiCallLog 实体所有字段） -->
+    <sql id="baseColumns">
+        id, user_id, api_type, request_json, response_json,
+        status, retry_count, cost_time, create_time
+    </sql>
+
+    <!-- 1. 插入单条 AI 调用日志 -->
+    <insert id="insertAiCallLogSingle" parameterType="com.gdut.profile.recommend.entity.AiCallLog">
+        INSERT INTO ai_call_log (
+            id, user_id, api_type, request_json, response_json,
+            status, retry_count, cost_time, create_time
+        ) VALUES (
+                     #{id}, #{userId}, #{apiType}, #{requestJson}, #{responseJson},
+                     #{status}, #{retryCount}, #{costTime}, #{createTime}
+                 )
+    </insert>
+
+    <!-- 2. 批量插入 AI 调用日志（AI 日志高频写入，优化批量执行效率） -->
+    <insert id="insertAiCallLogMulti" parameterType="java.util.List">
+        INSERT INTO ai_call_log (
+        id, user_id, api_type, request_json, response_json,
+        status, retry_count, cost_time, create_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id}, #{item.userId}, #{item.apiType}, #{item.requestJson}, #{item.responseJson},
+            #{item.status}, #{item.retryCount}, #{item.costTime}, #{item.createTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 3. 删除单条 AI 调用日志 -->
+    <delete id="deleteAiCallLogSingle" parameterType="java.lang.String">
+        DELETE FROM ai_call_log WHERE id = #{logId}
+    </delete>
+
+    <!-- 4. 批量删除 AI 调用日志（修正原方法名错误：deleteRecommendResultMulti → deleteAiCallLogMulti） -->
+    <delete id="deleteAiCallLogMulti" parameterType="java.util.List">
+        DELETE FROM ai_call_log WHERE id IN
+        <foreach collection="list" item="logId" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+
+    <!-- 5. 更新单条 AI 调用日志（动态更新非空字段，仅允许更新状态、重试次数、耗时、响应JSON） -->
+    <update id="updateAiCallLogSingle" parameterType="com.gdut.profile.recommend.entity.AiCallLog">
+        UPDATE ai_call_log
+        <set>
+            <if test="responseJson != null">response_json = #{responseJson},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="costTime != null">cost_time = #{costTime}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 6. 批量更新 AI 调用日志（需开启数据库 allowMultiQueries=true） -->
+    <update id="updateAiCallLogMulti" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE ai_call_log
+            <set>
+                <if test="item.responseJson != null">response_json = #{item.responseJson},</if>
+                <if test="item.status != null">status = #{item.status},</if>
+                <if test="item.retryCount != null">retry_count = #{item.retryCount},</if>
+                <if test="item.costTime != null">cost_time = #{item.costTime}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 7. 查询单条 AI 调用日志 -->
+    <select id="selectAiCallLogSingle" parameterType="java.lang.String" resultType="com.gdut.profile.recommend.entity.AiCallLog">
+        SELECT <include refid="baseColumns"/> FROM ai_call_log WHERE id = #{logId}
+    </select>
+
+    <!-- 8. 批量查询 AI 调用日志 -->
+    <select id="selectAiCallLogMulti" parameterType="java.util.List" resultType="com.gdut.profile.recommend.entity.AiCallLog">
+        SELECT <include refid="baseColumns"/> FROM ai_call_log WHERE id IN
+        <foreach collection="list" item="logId" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+        ORDER BY create_time DESC <!-- 按创建时间倒序，优先返回最新日志 -->
+    </select>
+
+</mapper>

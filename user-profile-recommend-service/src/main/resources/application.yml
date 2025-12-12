@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: user-profile-recommend-service # 与子模块ArtifactId一致
+  config:
+    import: nacos:user-profile-recommend-service.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 134.175.123.61:8848
+      config:
+        server-addr: 134.175.123.61:8848
+        file-extension: yml
+        group: DEFAULT_GROUP # Nacos配置分组（默认即可）
+    sentinel:
+      transport:
+        dashboard: 134.175.123.61:8080
+      eager: true
+  datasource:
+    url: jdbc:mysql://134.175.123.61:3306/db_profile_recommend?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: ljl20021018
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: 134.175.123.61
+    port: 6379
+    password:
+    database: 3 # 推荐服务专用Redis数据库
+  rabbitmq:
+    host: 134.175.123.61
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+
+server:
+  port: 9002 # 独立端口
+  servlet:
+    context-path: /
+
+feign:
+  client:
+    config:
+      # 针对behavior-data-service的FeignClient单独配置（value的值要和@FeignClient的value一致）
+      behavior-data-service:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: FULL # 单独开启该Client的详细日志（调试时用，生产可改BASIC）
+
+# MyBatis-Plus配置（适配新包名）
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.gdut.profile.recommend.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# XXL-JOB配置（核心新增）
+xxl:
+  job:
+    admin:
+      addresses: http://134.175.123.61:8868/xxl-job-admin # XXL-JOB执行器地址（需单独启动XXL-JOB Admin）
+    executor:
+      appname: user-profile-recommend-job # 执行器名称（唯一）
+      address: ""
+      ip: ""
+      port: 9999 # 执行器端口（默认9999，不冲突即可）
+      logpath: ./xxl-job-logs/ # 日志路径（后续需要改成云服务器那边的路径）
+      logretentiondays: 30 # 日志保留天数
+    accessToken: "" # 无令牌留空
+
+logging:
+  level:
+    com.gdut.profile.recommend.mapper: debug
+    com.xxl.job: debug # 打印XXL-JOB日志

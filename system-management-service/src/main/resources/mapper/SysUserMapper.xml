@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace 对应修正后的 Mapper 接口完整路径 -->
+<mapper namespace="com.gdut.system.management.mapper.SysUserMapper">
+
+    <!-- 通用字段片段（对应 SysUser 实体） -->
+    <sql id="baseColumns">
+        id, username, password, role_type, phone,
+        status, create_time, update_time
+    </sql>
+
+    <!-- 插入单条用户 -->
+    <insert id="insertSysUserSingle" parameterType="com.gdut.system.management.entity.SysUser">
+        INSERT INTO sys_user (
+            id, username, password, role_type, phone,
+            status, create_time, update_time
+        ) VALUES (
+                     #{id}, #{username}, #{password}, #{roleType}, #{phone},
+                     #{status}, #{createTime}, #{updateTime}
+                 )
+    </insert>
+
+    <!-- 批量插入用户 -->
+    <insert id="insertSysUserMulti" parameterType="java.util.List">
+        INSERT INTO sys_user (
+        id, username, password, role_type, phone,
+        status, create_time, update_time
+        ) VALUES
+        <foreach collection="users" item="item" separator=",">
+            (
+            #{item.id}, #{item.username}, #{item.password}, #{item.roleType}, #{item.phone},
+            #{item.status}, #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除单条用户 -->
+    <delete id="deleteSysUserSingle" parameterType="java.lang.String">
+        DELETE FROM sys_user WHERE id = #{userId}
+    </delete>
+
+    <!-- 批量删除用户 -->
+    <delete id="deleteSysUserMulti" parameterType="java.util.List">
+        DELETE FROM sys_user WHERE id IN
+        <foreach collection="userIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 更新单条用户（动态更新非空字段） -->
+    <update id="updateSysUserSingle" parameterType="com.gdut.system.management.entity.SysUser">
+        UPDATE sys_user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="roleType != null">role_type = #{roleType},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新用户（需开启 allowMultiQueries=true） -->
+    <update id="updateSysUserMulti" parameterType="java.util.List">
+        <foreach collection="users" item="item" separator=";">
+            UPDATE sys_user
+            <set>
+                <if test="item.username != null">username = #{item.username},</if>
+                <if test="item.password != null">password = #{item.password},</if>
+                <if test="item.roleType != null">role_type = #{item.roleType},</if>
+                <if test="item.phone != null">phone = #{item.phone},</if>
+                <if test="item.status != null">status = #{item.status},</if>
+                <if test="item.updateTime != null">update_time = #{item.updateTime}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 查询单条用户 -->
+    <select id="selectSysUserSingle" parameterType="java.lang.String" resultType="com.gdut.system.management.entity.SysUser">
+        SELECT <include refid="baseColumns"/> FROM sys_user WHERE id = #{userId}
+    </select>
+
+    <!-- 批量查询用户 -->
+    <select id="selectSysUserMulti" parameterType="java.util.List" resultType="com.gdut.system.management.entity.SysUser">
+        SELECT <include refid="baseColumns"/> FROM sys_user WHERE id IN
+        <foreach collection="userIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有用户id -->
+    <select id="selectAllSysUserIds" resultType="java.lang.String">
+        SELECT id FROM sys_user
+    </select>
+
+</mapper>

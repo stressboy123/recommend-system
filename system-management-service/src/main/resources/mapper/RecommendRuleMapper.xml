@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gdut.system.management.mapper.RecommendRuleMapper">
+
+    <!-- 通用字段片段（对应 RecommendRule 实体） -->
+    <sql id="baseColumns">
+        id, rule_name, scene, tag_weight_json, mode_ratio_json,
+        cache_expire, is_enable, create_user_id, create_time, update_time
+    </sql>
+
+    <!-- 插入单条推荐规则 -->
+    <insert id="insertRecommendRuleSingle" parameterType="com.gdut.system.management.entity.RecommendRule">
+        INSERT INTO recommend_rule (
+            id, rule_name, scene, tag_weight_json, mode_ratio_json,
+            cache_expire, is_enable, create_user_id, create_time, update_time
+        ) VALUES (
+                     #{id}, #{ruleName}, #{scene}, #{tagWeightJson}, #{modeRatioJson},
+                     #{cacheExpire}, #{isEnable}, #{createUserId}, #{createTime}, #{updateTime}
+                 )
+    </insert>
+
+    <!-- 批量插入推荐规则 -->
+    <insert id="insertRecommendRuleMulti" parameterType="java.util.List">
+        INSERT INTO recommend_rule (
+        id, rule_name, scene, tag_weight_json, mode_ratio_json,
+        cache_expire, is_enable, create_user_id, create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id}, #{item.ruleName}, #{item.scene}, #{item.tagWeightJson}, #{item.modeRatioJson},
+            #{item.cacheExpire}, #{item.isEnable}, #{item.createUserId}, #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除单条推荐规则 -->
+    <delete id="deleteRecommendRuleSingle" parameterType="java.lang.String">
+        DELETE FROM recommend_rule WHERE id = #{ruleId}
+    </delete>
+
+    <!-- 批量删除推荐规则 -->
+    <delete id="deleteRecommendRuleMulti" parameterType="java.util.List">
+        DELETE FROM recommend_rule WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 更新单条推荐规则（动态更新非空字段） -->
+    <update id="updateRecommendRuleSingle" parameterType="com.gdut.system.management.entity.RecommendRule">
+        UPDATE recommend_rule
+        <set>
+            <if test="ruleName != null">rule_name = #{ruleName},</if>
+            <if test="scene != null">scene = #{scene},</if>
+            <if test="tagWeightJson != null">tag_weight_json = #{tagWeightJson},</if>
+            <if test="modeRatioJson != null">mode_ratio_json = #{modeRatioJson},</if>
+            <if test="cacheExpire != null">cache_expire = #{cacheExpire},</if>
+            <if test="isEnable != null">is_enable = #{isEnable},</if>
+            <if test="createUserId != null">create_user_id = #{createUserId},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新推荐规则（需开启 allowMultiQueries=true） -->
+    <update id="updateRecommendRuleMulti" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE recommend_rule
+            <set>
+                <if test="item.ruleName != null">rule_name = #{item.ruleName},</if>
+                <if test="item.scene != null">scene = #{item.scene},</if>
+                <if test="item.tagWeightJson != null">tag_weight_json = #{item.tagWeightJson},</if>
+                <if test="item.modeRatioJson != null">mode_ratio_json = #{item.modeRatioJson},</if>
+                <if test="item.cacheExpire != null">cache_expire = #{item.cacheExpire},</if>
+                <if test="item.isEnable != null">is_enable = #{item.isEnable},</if>
+                <if test="item.createUserId != null">create_user_id = #{item.createUserId},</if>
+                <if test="item.updateTime != null">update_time = #{item.updateTime}</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <!-- 查询单条推荐规则 -->
+    <select id="selectRecommendRuleSingle" parameterType="java.lang.String" resultType="com.gdut.system.management.entity.RecommendRule">
+        SELECT <include refid="baseColumns"/> FROM recommend_rule WHERE id = #{ruleId}
+    </select>
+
+    <!-- 批量查询推荐规则 -->
+    <select id="selectRecommendRuleMulti" parameterType="java.util.List" resultType="com.gdut.system.management.entity.RecommendRule">
+        SELECT <include refid="baseColumns"/> FROM recommend_rule WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>
