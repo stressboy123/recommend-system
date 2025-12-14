@@ -102,4 +102,12 @@ public class UserProfileController {
     public Result<Integer> addTagBatch() {
         return userProfileService.saveTagBatch();
     }
+
+    /**
+     * 根据用户id查询用户标签
+     */
+    @GetMapping("/queryByUserId/{userId}")
+    public Result<UserTag> getUserTagByUserId(@PathVariable("userId") String userId) {
+        return userProfileService.getUserTagByUserId(userId);
+    }
 }

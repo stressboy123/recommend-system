@@ -140,12 +140,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (tag.getId() == null) {
             tag.setId(UUID.randomUUID().toString());
         }
-        if (tag.getUpdateTime() == null) {
-            tag.setUpdateTime(LocalDateTime.now());
-        }
         if (tag.getUpdateType() == null) {
             tag.setUpdateType(1);
         }
+        tag.setUpdateTime(LocalDateTime.now());
 
         int count = userTagMapper.updateUserTagSingle(tag);
         return count > 0 ? ResultUtils.success() : ResultUtils.fail(ResultCode.DB_ERROR);
